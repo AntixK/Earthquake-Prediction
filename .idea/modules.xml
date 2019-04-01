@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Code.iml" filepath="$PROJECT_DIR$/.idea/Code.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../Endimension/.idea/Endimension.iml" filepath="$PROJECT_DIR$/../../Endimension/.idea/Endimension.iml" />
+      <module fileurl="file://D:/GP/.idea/GP.iml" filepath="D:/GP/.idea/GP.iml" />
+      <module fileurl="file://D:/HRMI/.idea/HRMI.iml" filepath="D:/HRMI/.idea/HRMI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../blog-code-snippets-master/.idea/blog-code-snippets-master.iml" filepath="$PROJECT_DIR$/../blog-code-snippets-master/.idea/blog-code-snippets-master.iml" />
+    </modules>
+  </component>
+</project>

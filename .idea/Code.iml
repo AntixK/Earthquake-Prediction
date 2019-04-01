@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (Code)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="HRMI" />
+    <orderEntry type="module" module-name="GP" />
+    <orderEntry type="module" module-name="Endimension" />
+    <orderEntry type="module" module-name="blog-code-snippets-master" />
+  </component>
+</module>
