@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
 import matplotlib.pyplot as plt
-from tqdm import tqdm, tqdm_notebook
+from tqdm import tqdm_notebook
 from scipy import stats
 from scipy.fftpack import dct
 import pathlib
+from pathlib import Path
 import os
 
 class DataProcessor():
@@ -121,7 +121,6 @@ class DataProcessor():
         We call this resolving the data.
         
         """
-        from pathlib import Path
         file = Path(self.processed_data_path + "resolved_train.csv")
         if file.is_file():
             print("Pre-resolved data already available!")
@@ -140,7 +139,7 @@ class DataProcessor():
             x_s, y_s = [], []
             # Replace the signal with the summary statistic within the resolution frame
 
-            for chunk in tqdm(data_chunks):
+            for chunk in tqdm_notebook(data_chunks):
                 x = chunk.values[:, 0]
                 y = chunk.values[:, 1]
 
@@ -159,6 +158,14 @@ class DataProcessor():
             print("Done! Resolved data saved at {}".format(self.processed_data_path + self.filename))
 
     def extract_features(self, features = None, N = 150_000):
+
+        file_1 = Path(self.processed_data_path+"X_train_features.csv")
+        file_2 = Path(self.processed_data_path+"y_train_features.csv")
+        if file_1.is_file() and file_2.is_file():
+            print("Feature extracted data already available!")
+
+            return None
+
         if features is None:
             features = ['moment','quantile','freq', 'norm', 'subwindow']
 
@@ -261,8 +268,64 @@ class TestDataProcessor():
     def __init__(self, submission_file, test_data_path):
         self.submission_file = submission_file
         self.test_path = test_data_path
+        pathlib.Path('/processed_data').mkdir(exist_ok=True)
+        self.processed_file_path = os.getcwd() + "/processed_data/"
+
+    def resolve_data(self, summary_stats='mean'):
+        """
+        Resolve the test data similar to the train data
+
+        """
+        file = Path(self.processed_file_path+ "resolved_test.csv")
+        if file.is_file():
+            print("Pre-resolved data already available!")
+            self.filename = "resolved_test.csv"
+        else:
+            print("Warning : This process may take some time... Please wait...")
+
+            self.resolution = 4096
+            ser_len = int(np.round(150_000/self.resolution))
+            x_test = np.empty((ser_len,))
+
+
+            submission = pd.read_csv(self.submission_file, index_col='seg_id')
+
+            for i, seg_id in enumerate(tqdm_notebook(submission.index)):
+
+                data_chunks = pd.read_csv(self.test_path + seg_id + '.csv',
+                                          chunksize=self.resolution - 1, low_memory=False)
+
+                x_s = []
+                # Replace the signal with the summary statistic within the resolution frame
+
+                for chunk in data_chunks:
+                    x = chunk.values
+
+                    if summary_stats == 'z-score':
+                        print("Using mean/std")
+                        x_s.append(x.mean() / (x.std() + 1e-6))
+                    elif summary_stats == 'mean':
+                        x_s.append(x.mean())
+                    else:
+                        raise ValueError("Unknown summary statistic given to resolve the data!")
+                x_test = np.column_stack((x_test, x_s))
+                print(x_test.shape)
+
+                if i == 100:
+                    break
+
+            np.savetxt(self.processed_file_path + "resolved_test.csv", x_test)
+            self.filename = "resolved_test.csv"
+            print("Done! Resolved data saved at {}".format(self.processed_file_path + self.filename))
 
     def extract_features(self, features):
+
+        file = Path(self.processed_file_path+ "X_test_features.csv")
+        if file.is_file():
+            print("Feature extracted data already available!")
+
+            return None
+
         submission = pd.read_csv(self.submission_file, index_col='seg_id')
         X_test = pd.DataFrame(dtype=np.float64, index=submission.index)
 
@@ -339,5 +402,12 @@ class TestDataProcessor():
                     X_test.loc[seg_id, 'av_change_abs_roll_mean_' + str(windows)] = np.mean(np.diff(x_roll_mean))
                     X_test.loc[seg_id, 'abs_max_roll_mean_' + str(windows)] = np.abs(x_roll_mean).max()
 
+        X_test.to_csv(self.processed_file_path + "X_test_features.csv", index=False)
+        print("Done! Feature extracted data saved at {}".format(self.processed_file_path))
 
+    # Read smaller data files - can be loaded entirely
+    def get_test_feature_data(self):
+        return pd.read_csv(self.processed_file_path + "X_test_features.csv")
 
+    def get_resolved_test_data(self):
+        return np.genfromtxt(self.processed_file_path + self.filename)
